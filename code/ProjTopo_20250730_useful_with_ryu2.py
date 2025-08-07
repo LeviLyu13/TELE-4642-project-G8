@@ -29,8 +29,10 @@ class CustomTopo(Topo):
 
         Host2 = self.addHost('h2', cpu=.5 / k)
         self.addLink(Switch1, Host2, **linkopts3)
+        
         Host3 = self.addHost('h3', cpu=.5 / k)
         self.addLink(Switch1, Host3, **linkopts3)
+        
         Host4 = self.addHost('h4', cpu=.5 / k)
         self.addLink(Switch1, Host4, **linkopts3)
 
@@ -104,4 +106,5 @@ def perfTest():
 if __name__ == '__main__':
     setLogLevel('info')
     perfTest()
+
 
