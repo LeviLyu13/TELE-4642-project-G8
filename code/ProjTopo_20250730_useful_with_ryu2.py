@@ -17,14 +17,13 @@ class CustomTopo(Topo):
     "fanout - number of child switch per parent switch"
 
     def __init__(self, linkopts1, linkopts2, linkopts3, fanout=2, **opts):
-        # Initialize topology and default options
+        
         Topo.__init__(self, **opts)
         k = fanout
         Switch1 = self.addSwitch('s1')
         Switch2 = self.addSwitch('s2')
         self.addLink(Switch1, Switch2, **linkopts1)
 
-        # add hosts
         Host1 = self.addHost('h1', cpu=.5 / k)
         self.addLink(Switch1, Host1, **linkopts3)
 
@@ -35,7 +34,6 @@ class CustomTopo(Topo):
         Host4 = self.addHost('h4', cpu=.5 / k)
         self.addLink(Switch1, Host4, **linkopts3)
 
-        # add servers
         Server1 = self.addHost('ser1', cpu=.5 / k)
         self.addLink(Switch2, Server1, **linkopts3)
         Server2 = self.addHost('ser2', cpu=.5 / k)
@@ -55,7 +53,7 @@ def perfTest():
     net.addController('c0', controller=RemoteController, ip='127.0.0.1', port=6633)
     net.build()
     net.start()
-    # set IP
+    
     ser1 = net.get('ser1')
     ser1.setIP('10.46.42.1')
     ser2 = net.get('ser2')
@@ -73,9 +71,8 @@ def perfTest():
 
     print("Testing network connectivity")
 
-    # ==== Test Parameters ====
-    seconds = 5       # 每个访问持续时间
-    rounds = 3        # 访问轮数
+    seconds = 5       
+    rounds = 3       
     Minimum_number_of_tasks_perround = 4
 
     base_patterns = [
@@ -84,12 +81,10 @@ def perfTest():
         (h3, ser1, 443), (h3, ser2, 80), (h3, ser3, 80),
         (h4, ser1, 443), (h4, ser2, 80), (h4, ser3, 80)
     ]
-
-    # ==== 多轮随机顺序 + 随机错峰 ====
+    
     for r in range(rounds):
         print(f"\n=== Round {r + 1} ===")
 
-        # 每轮打乱访问顺序
         access_patterns = base_patterns.copy()
         random.shuffle(access_patterns)
 
@@ -97,7 +92,7 @@ def perfTest():
         access_patterns = access_patterns[:num_to_run]
 
         for src, dst, port in access_patterns:
-            delay = random.uniform(0, 2)  # 随机延迟 0~2 秒
+            delay = random.uniform(0, 2) 
             print(f"Waiting {delay:.2f}s before {src} -> {dst} (port {port})")
             time.sleep(delay)
             net.iperf([src, dst], port=port, seconds=seconds)
@@ -106,7 +101,7 @@ def perfTest():
     # net.interact()
     net.stop()
 
-
 if __name__ == '__main__':
     setLogLevel('info')
     perfTest()
+
