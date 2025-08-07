@@ -27,7 +27,7 @@ os.makedirs(SUMMARY_DIR, exist_ok=True)
 
 
 class FlowStatsMonitor(app_manager.RyuApp):
-    OFP_VERSIONS = [ofproto_v1_3.OFP_VERSION]  # Must match your forwarding app
+    OFP_VERSIONS = [ofproto_v1_3.OFP_VERSION]
 
     def __init__(self, *args, **kwargs):
         super(FlowStatsMonitor, self).__init__(*args, **kwargs)
@@ -103,7 +103,6 @@ class FlowStatsMonitor(app_manager.RyuApp):
             if df.empty:
                 return
 
-            # ===== 1. 总量饼图 =====
             total_dir = os.path.join(SUMMARY_DIR, "total_usage")
             os.makedirs(total_dir, exist_ok=True)
             usage_by_pair = df.groupby(['Src', 'Dst'])['Total_Bytes'].sum().reset_index()
@@ -116,7 +115,6 @@ class FlowStatsMonitor(app_manager.RyuApp):
             plt.savefig(os.path.join(total_dir, "total_usage_chart.png"), bbox_inches='tight')
             plt.close()
 
-            # ===== 2. 用户聚合 =====
             user_dir = os.path.join(SUMMARY_DIR, "user_aggregation")
             os.makedirs(user_dir, exist_ok=True)
             usage_by_user = df.groupby('Src')['Total_Bytes'].sum().sort_values(ascending=False)
@@ -128,7 +126,6 @@ class FlowStatsMonitor(app_manager.RyuApp):
             plt.savefig(os.path.join(user_dir, "usage_by_user_chart.png"))
             plt.close()
 
-            # ===== 3. 服务聚合 =====
             service_dir = os.path.join(SUMMARY_DIR, "service_aggregation")
             os.makedirs(service_dir, exist_ok=True)
             usage_by_service = df.groupby('Dst')['Total_Bytes'].sum().sort_values(ascending=False)
@@ -140,7 +137,6 @@ class FlowStatsMonitor(app_manager.RyuApp):
             plt.savefig(os.path.join(service_dir, "usage_by_service_chart.png"))
             plt.close()
 
-            # ===== 4. 堆叠柱状图 =====
             stacked_dir = os.path.join(SUMMARY_DIR, "stacked_bar")
             os.makedirs(stacked_dir, exist_ok=True)
             pivot_df = df.pivot_table(index='Src', columns='Dst', values='Total_Bytes', aggfunc='sum').fillna(0)
@@ -152,11 +148,9 @@ class FlowStatsMonitor(app_manager.RyuApp):
             plt.savefig(os.path.join(stacked_dir, "stacked_bar_chart.png"))
             plt.close()
 
-            # ===== 5. 时间序列折线图（总量 + 多用户，颜色固定，曲线平滑） =====
             ts_dir = os.path.join(SUMMARY_DIR, "time_series")
             os.makedirs(ts_dir, exist_ok=True)
 
-            # (a) 多用户时间序列
             usage_by_user_now = df.groupby('Src')['Total_Bytes'].sum()
             ts_csv_users = os.path.join(ts_dir, "time_series_users.csv")
             if os.path.exists(ts_csv_users):
@@ -170,7 +164,6 @@ class FlowStatsMonitor(app_manager.RyuApp):
             ts_df = pd.concat([ts_df, pd.DataFrame([new_row])], ignore_index=True)
             ts_df.to_csv(ts_csv_users, index=False)
 
-            # 绘制平滑多用户曲线
             plt.figure(figsize=(10, 6))
             colors = plt.cm.tab10.colors
             for idx, user in enumerate(usage_by_user_now.index):
@@ -190,7 +183,6 @@ class FlowStatsMonitor(app_manager.RyuApp):
             plt.savefig(os.path.join(ts_dir, "traffic_over_time_by_user.png"))
             plt.close()
 
-            # (b) 总流量时间序列（平滑）
             ts_csv_total = os.path.join(ts_dir, "time_series_total.csv")
             total_sum = df['Total_Bytes'].sum()
             with open(ts_csv_total, 'a', newline='') as f:
@@ -212,3 +204,4 @@ class FlowStatsMonitor(app_manager.RyuApp):
 
         except Exception as e:
             self.logger.error(f"Failed to plot analysis charts: {e}")
+
